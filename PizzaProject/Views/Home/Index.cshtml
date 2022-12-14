@@ -1,0 +1,237 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+<style>
+    table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+    th {
+        width:40%;
+    }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+<body onload="LoadPizzaSize(); LoadPizzaTopping();">
+    <div id="orderTable">
+
+    </div>
+    <div id="grandTotal"></div>
+    <div class="text-center">
+        <label for="pizzaSize">Choose Pizza Size:</label>
+        <select onchange="calculatePrice();" name="pizzaSize" id="pizzaSize">
+            <option value="none" selected disabled hidden>Select an Option</option>
+        </select>
+    </div>
+    <div id="totalPrice">
+        <label for="totalPizzaPrice"> Total Price</label>
+        <input type="number" id="totalPizzaPrice" value="0" readonly>
+
+    </div>
+
+
+    <div id="pizzaTopping" style="margin-top:100px;">
+        
+    </div>
+
+    <button onclick="AddToCart();">Add To Cart</button>
+
+</body>
+<script>
+    var totalPrice = 0;
+    var toppingPrice = 0;
+    var grandTotal = 0;
+    function LoadPizzaSize() {
+        let pizzaSize = document.getElementById("pizzaSize");
+        $.ajax({
+        type: "GET",
+        url: "https://localhost:44371/Home/GetPizzaSize",
+        dataType: "json",
+        success: function (msg) {
+            var array = Object.keys(msg);
+            var array1 = Object.values(msg);
+            for (let i = 0; i < array.length; i++) {
+
+                let opt = document.createElement('option');
+                opt.value = array1[i];
+                opt.innerHTML = array[i] + " (" + array1[i]+")";
+                pizzaSize.appendChild(opt);
+            }
+            
+        },
+        error: function (req, status, error) {
+            alert("Encounter error");
+        }
+    });
+    }
+
+    function LoadPizzaTopping() {
+        let pizzaTopping = document.getElementById("pizzaTopping");
+        $.ajax({
+            type: "GET",
+            url: "https://localhost:44371/Home/GetPizzaTopping",
+            dataType: "json",
+            success: function (msg) {
+                var array = Object.keys(msg);
+                var array1 = Object.values(msg);
+                for (let i = 0; i < array.length; i++) {
+
+                    let input = document.createElement('input');
+                    input.value = array1[i];
+                    input.type = "checkbox";
+                    input.className="toppingdata"
+                    input.setAttribute("onclick","calulateTopping(this);")
+                    let label = document.createElement('label');
+                    label.innerHTML = array[i] + " (" + array1[i] + ")";
+                    label.htmlFor = array[i] + array1[i];
+
+                    pizzaTopping.appendChild(input);
+                    pizzaTopping.appendChild(label);
+                    let br = document.createElement("br");
+                    pizzaTopping.appendChild(br);
+                }
+
+            },
+            error: function (req, status, error) {
+                alert("Encounter error");
+            }
+        });
+    }
+
+    function calculatePrice() {
+        let pizzaSize = document.getElementById("pizzaSize");
+        let totalPizzaPrice = document.getElementById("totalPizzaPrice");
+        totalPrice = parseInt(pizzaSize.value);
+        totalPizzaPrice.value = toppingPrice + totalPrice;
+    }
+
+    function calulateTopping(elem) {
+        let topping = elem.closest("input");
+        if (topping.checked) {
+            toppingPrice += parseInt(topping.value);
+        } else {
+            toppingPrice -= parseInt(topping.value);
+        }
+        let totalPizzaPrice = document.getElementById("totalPizzaPrice");
+        totalPizzaPrice.value = totalPrice + toppingPrice;
+    }
+    var count = 0;
+    var flag = true;
+
+    function AddToCart() {
+        let pizzaSize = document.getElementById("pizzaSize");
+        let orderTable = document.getElementById("orderTable");
+        if (flag == true) {
+            let Size = pizzaSize.options[pizzaSize.selectedIndex].text;
+            if (Size == "Select an Option") {
+                alert("Please choose pizza Size");
+                return;
+            }
+            orderTable.innerHTML = "<table id='orderdata'><tr><th>Size</th><th>Topping</th><th>Total Price</th><th>Action</th></tr></table>";
+            
+            
+            let allTopping = "";
+            
+            let allcheckbox = document.querySelectorAll(".toppingdata");
+            for (let i = 0; i < allcheckbox.length; i++) {
+                if (allcheckbox[i].checked) {
+                    if (allTopping == "") {
+                        allTopping = allcheckbox[i].nextSibling.textContent;
+                    } else {
+                        allTopping += "," + allcheckbox[i].nextSibling.textContent;
+                    }
+                }
+            }
+
+            
+
+            let orderdata = document.getElementById("orderdata");
+            let tr = document.createElement('tr');
+            let td = document.createElement("td");
+            td.textContent = Size;
+            tr.appendChild(td);
+            let td1 = document.createElement("td");
+            td1.textContent = allTopping;
+            tr.appendChild(td1);
+            let td2 = document.createElement("td");
+            td2.className = "price";
+            td2.textContent = totalPrice + toppingPrice;
+            grandTotal += totalPrice + toppingPrice;
+            tr.appendChild(td2);
+            let td3 = document.createElement("button");
+            td3.textContent = "Delete";
+            td3.setAttribute("onclick", "deleteItem(this)");
+
+            let priceTotal = document.getElementById("grandTotal");
+            priceTotal.innerHTML = "<strong>Grand Total: </strong>";
+            let p = document.createElement('p');
+            p.id = "totalprices";
+            p.innerHTML = grandTotal;
+            priceTotal.appendChild(p);
+
+
+            tr.appendChild(td3);
+            orderdata.appendChild(tr);
+            count++;
+            flag = false;
+        } else {
+
+            let pizzaSize = document.getElementById("pizzaSize");
+            let allcheckbox = document.querySelectorAll(".toppingdata");
+            let Size = pizzaSize.options[pizzaSize.selectedIndex].text;
+            let allTopping = "";
+            for (let i = 0; i < allcheckbox.length; i++) {
+                if (allcheckbox[i].checked) {
+                    if (allTopping == "") {
+                        allTopping = allcheckbox[i].nextSibling.textContent;
+                    } else {
+                        allTopping += "," + allcheckbox[i].nextSibling.textContent;
+                    }
+                }
+            }
+
+            let orderdata = document.getElementById("orderdata");
+            let tr = document.createElement('tr');
+            let td = document.createElement("td");
+            td.textContent = Size;
+            tr.appendChild(td);
+            let td1 = document.createElement("td");
+            td1.textContent = allTopping;
+            tr.appendChild(td1);
+            let td2 = document.createElement("td");
+            td2.className = "price";
+            td2.textContent = totalPrice + toppingPrice;
+            grandTotal += totalPrice + toppingPrice;
+            tr.appendChild(td2);
+            let td3 = document.createElement("button");
+            td3.textContent = "Delete";
+            td3.setAttribute("onclick", "deleteItem(this)");
+
+            let totalprices = document.getElementById("totalprices");
+            totalprices.innerHTML = grandTotal;
+
+            tr.appendChild(td3);
+            orderdata.appendChild(tr);
+            count++;
+        }
+    }
+    
+            function deleteItem(elem) {
+                
+                    let table = document.getElementById("orderdata");
+                let tr = elem.closest("tr");
+                let price = tr.getElementsByClassName("price");
+                grandTotal -= parseInt(price[0].innerHTML);
+                let totalprices = document.getElementById("totalprices");
+                totalprices.innerHTML = grandTotal;
+                    table.removeChild(tr);
+                    count--;
+                if (count <= 0) {
+                    let orderTable = document.getElementById("orderTable");
+                    orderTable.removeChild(table);
+                    flag = true;
+                    let grandTotal1 = document.getElementById("grandTotal");
+                    grandTotal1.innerHTML = "";
+                }
+            }
+
+</script>
