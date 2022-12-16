@@ -16,24 +16,35 @@
 
     </div>
     <div id="grandTotal"></div>
-    <div class="text-center">
-        <label for="pizzaSize">Choose Pizza Size:</label>
-        <select onchange="calculatePrice();" name="pizzaSize" id="pizzaSize">
-            <option value="none" selected disabled hidden>Select an Option</option>
-        </select>
-    </div>
-    <div id="totalPrice">
-        <label for="totalPizzaPrice"> Total Price</label>
-        <input type="number" id="totalPizzaPrice" value="0" readonly>
+    <form id="main">
+        <div class="text-center">
 
-    </div>
+            <label for="pizzaSize">Choose Pizza Size:</label>
+            <select onchange="calculatePrice();" name="pizzaSize" id="pizzaSize">
+                <option value="none" selected disabled hidden>Select an Option</option>
+            </select>
+        </div>
+        <div id="totalPrice">
+            <label for="totalPizzaPrice"> Total Price</label>
+            <input type="number" id="totalPizzaPrice" value="0" readonly>
+
+        </div>
 
 
-    <div id="pizzaTopping" style="margin-top:100px;">
-        
-    </div>
+        <div id="pizzaTopping" style="margin-top:100px;">
 
+        </div>
+    </form>
     <button onclick="AddToCart();">Add To Cart</button>
+    <br>
+    <div id="placeOrder" style="margin-top:20px">
+        <form id="formdata">
+            <input type="text" id="form" name="address" placeholder="enter your address" required>
+            <input type="submit" value="Place Order">
+        </form>
+    </div>
+
+
 
 </body>
 <script>
@@ -234,4 +245,25 @@
                 }
             }
 
+    
+        let x = document.getElementById("formdata");
+        x.addEventListener("submit", function (event) {
+            event.preventDefault();
+            x.reset();
+            let msg = document.getElementById("orderTable");
+            msg.innerHTML = "<h1>You order is Placed</h1><br><h3>Your grand total is " + grandTotal + "</h3>";
+            let clean = document.getElementById("grandTotal");
+            clean.innerHTML = "";
+            let main = document.getElementById("main");
+            main.reset();
+            flag = true;
+            count = 0;
+            console.log(grandTotal);
+            grandTotal = 0;
+            console.log(grandTotal);
+            
+        })
+        
+
+    
 </script>
